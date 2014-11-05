@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "feedback.h"
 #include <QFileDialog>
 #include <iostream>
 #include <Poco/Net/MailMessage.h>

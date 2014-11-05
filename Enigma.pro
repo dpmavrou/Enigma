@@ -14,12 +14,18 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-        enigma_ecies.cpp
+        enigma_ecies.cpp \
+    dialog.cpp \
+    dialogd.cpp
 
 HEADERS  += mainwindow.h \
         enigma_ecies.hpp \
-        icryptosystem.hpp
+        icryptosystem.hpp \
+    dialog.h \
+    dialogd.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    dialog.ui \
+    dialogd.ui
 
 LIBS += -lcrypto++ -lPocoFoundation -lPocoNet -lPocoNetSSL

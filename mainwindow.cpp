@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "feedback.h"
 #include <QFileDialog>
 #include <iostream>
 #include <Poco/Net/MailMessage.h>
@@ -11,6 +12,7 @@
 #include <Poco/Net/SSLManager.h>
 #include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/AutoPtr.h>
+#include <QDesktopWidget>\
 
 using namespace std;
 using namespace Poco::Net;
@@ -21,6 +23,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    const QRect screen = QApplication::desktop()->screenGeometry();
+    this->move(screen.center() - this->rect().center());
+    ui->encrypt_button->setToolTip("dsafsa");
+    ui->decrypt_button->setToolTip("<b>DO THIS THANG YOOOOO</b>");
+    ui->recipient_lineEdit->setToolTip("asdfsa");
+    ui->dirOut_lineEdit->setToolTip("asdfa");
+    ui->dirIn_lineEdit->setToolTip("fsdaf");
+    ui->input_button->setToolTip("fdsaf");
+    ui->output_button->setToolTip("fdd");
+    ui->recipient_lineEdit2->setToolTip("Dfsa");
+    ui->input_button2->setToolTip("fdsaf");
+    ui->hostname_lineEdit->setToolTip("sdfsa");
+    ui->password_lineEdit->setToolTip("sfda");
+    ui->username_lineEdit->setToolTip("dsfasda");
+    ui->emailDir_lineEdit->setToolTip("asdfsad");
+    ui->email_button->setToolTip("sdafas");
 }
 
 MainWindow::~MainWindow()
@@ -60,6 +78,9 @@ void MainWindow::on_encrypt_button_clicked()
     key->save(keyfile.toStdString());
     key->encrypt(dirIn.toStdString(), dirOut.toStdString());
     key->destroy();
+    estatus.setModal(true);
+    estatus.exec();
+
 }
 
 void MainWindow::on_decrypt_button_clicked()
@@ -69,6 +90,8 @@ void MainWindow::on_decrypt_button_clicked()
     key->load(keyfile.toStdString());
     key->decrypt(dirIn.toStdString(), dirOut.toStdString());
     key->destroy();
+    dstatus.setModal(true);
+    dstatus.exec();
 }
 
 void MainWindow::on_email_button_clicked()

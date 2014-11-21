@@ -2,20 +2,28 @@
 #include "ui_mainwindow.h"
 #include <QFileDialog>
 #include <iostream>
+#include <QDesktopWidget>
 #include <Poco/Net/MailMessage.h>
 #include <Poco/Net/MailRecipient.h>
-#include <Poco/Net/SecureStreamSocket.h>
-#include <Poco/Net/SMTPClientSession.h>
+#include <Poco/Net/SecureSMTPClientSession.h>
 #include <Poco/Net/NetException.h>
 #include <Poco/Net/Context.h>
 #include <Poco/Net/SSLManager.h>
 #include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/AutoPtr.h>
-#include <QDesktopWidget>\
+#include <Poco/Net/FilePartSource.h>
+#include <cryptopp/files.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/asn.h>
+#include <cryptopp/oids.h>
+
+
 
 using namespace std;
-using namespace Poco::Net;
 using namespace Poco;
+using namespace Poco::Net;
+using namespace CryptoPP;
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -24,20 +32,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     const QRect screen = QApplication::desktop()->screenGeometry();
     this->move(screen.center() - this->rect().center());
-    ui->encrypt_button->setToolTip("dsafsa");
-    ui->decrypt_button->setToolTip("<b>DO THIS THANG YOOOOO</b>");
-    ui->recipient_lineEdit->setToolTip("asdfsa");
-    ui->dirOut_lineEdit->setToolTip("asdfa");
-    ui->dirIn_lineEdit->setToolTip("fsdaf");
-    ui->input_button->setToolTip("fdsaf");
-    ui->output_button->setToolTip("fdd");
-    ui->recipient_lineEdit2->setToolTip("Dfsa");
-    ui->input_button2->setToolTip("fdsaf");
-    ui->hostname_lineEdit->setToolTip("sdfsa");
-    ui->password_lineEdit->setToolTip("sfda");
-    ui->username_lineEdit->setToolTip("dsfasda");
-    ui->emailDir_lineEdit->setToolTip("asdfsad");
-    ui->email_button->setToolTip("sdafas");
+
+    //tooltips
+    ui->encrypt_button->setToolTip("Encrypts selected file into output location");
+    ui->decrypt_button->setToolTip("Decrypts selected file into output location");
+    ui->recipient_lineEdit->setToolTip("Recipient");
+    ui->dirOut_lineEdit->setToolTip("Path to output file to be used as output location for encrypt and decrypt");
+    ui->dirIn_lineEdit->setToolTip("Path to input file to be encrypted or decrypted");
+    ui->input_button->setToolTip("Opens directory browser to select input file");
+    ui->output_button->setToolTip("Opens directory browser to select output file");
+    ui->email_button->setToolTip("Press to open sign-in interface for selected mail server");
 }
 
 MainWindow::~MainWindow()
@@ -46,12 +50,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/*
+ * Method to open directory window upon button press
+*/
 void MainWindow::on_input_button_clicked()
 {
     QFileInfo fi;
     dirIn = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                     "/home",
-                                                     tr("All Files (**)"));
+                                         "/home",
+                                         tr("All Files (**)"));
     fi.setFile(dirIn);
     fileName = fi.baseName();
     if (!dirIn.isNull()) {
@@ -59,81 +66,96 @@ void MainWindow::on_input_button_clicked()
     }
 }
 
+/*
+ * Method to open directory window upon button press
+*/
 void MainWindow::on_output_button_clicked()
 {
     dirOut = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                     "/home",
-                                                     tr("All Files (**)"));
+                                          "/home",
+                                          tr("All Files (**)"));
     if (!dirOut.isNull()) {
-         ui->dirOut_lineEdit->setText(dirOut);
+        ui->dirOut_lineEdit->setText(dirOut);
     }
 }
 
+/*
+ * Method to call cryptosystem methods to encrypt a file on button press
+*/
 void MainWindow::on_encrypt_button_clicked()
 {
     userName = ui->recipient_lineEdit->text();
-    key = newECIESPrivateKey();
-    keyfile = "keyfile";
-    key->save(keyfile.toStdString());
-    key->encrypt(dirIn.toStdString(), dirOut.toStdString());
-    key->destroy();
-    estatus.setModal(true);
-    estatus.exec();
-
+    try {
+        key = newECIESPrivateKey();
+        keyfile = "keyfile";
+        key->save(keyfile.toStdString());
+        key->encrypt(dirIn.toStdString(), dirOut.toStdString());
+        key->destroy();
+        status.setModal(true);
+        status.success(0);
+    } catch(std::exception& e){
+        status.fnFound();
+    }
+    status.exec();
 }
 
+/*
+ * Method to call cryptosystem methods to decrypt a file on button press
+*/
 void MainWindow::on_decrypt_button_clicked()
 {
     userName = ui->recipient_lineEdit->text();
-    key = newECIESPrivateKey();
-    key->load(keyfile.toStdString());
-    key->decrypt(dirIn.toStdString(), dirOut.toStdString());
-    key->destroy();
-    dstatus.setModal(true);
-    dstatus.exec();
+    try {
+        key = newECIESPrivateKey();
+        key->load(keyfile.toStdString());
+        key->decrypt(dirIn.toStdString(), dirOut.toStdString());
+        key->destroy();
+        status.setModal(true);
+        status.success(1);
+    } catch (std::exception& e) {
+        status.fnFound();
+    } status.exec();
 }
 
+/*
+ * Method to initiate email and send email with an attached file upon button press
+*/
 void MainWindow::on_email_button_clicked()
 {
-        string host = (ui->hostname_lineEdit->text()).toStdString();
-        UInt16 port = 25;
-        string user = (ui->username_lineEdit->text()).toStdString();
-        string password = (ui->password_lineEdit->text()).toStdString();
-        string to = (ui->recipient_lineEdit2->text()).toStdString();
-        string from = (ui->username_lineEdit->text()).toStdString();
-        string subject = "";
-        string theFile = (ui->emailDir_lineEdit->text()).toStdString();
-        subject = MailMessage::encodeWord(subject, "UTF-8");
-        string content = "";
-        MailMessage message;
-        //message.addAttachment(theFile, new FilePartSource(theFile));
-        message.setSender(from);
-        message.addRecipient(MailRecipient(MailRecipient::PRIMARY_RECIPIENT, to));
-        message.setSubject(subject);
-        message.setContentType("text/plain; charset=UTF-8");
-        message.setContent(content, MailMessage::ENCODING_8BIT);
-        try {
-            SMTPClientSession session(host, port);
-            session.open();
-            try {
-                session.login(SMTPClientSession::AUTH_LOGIN, user, password);
-                session.sendMessage(message);
-                cout << "Message successfully sent" << endl;
-                session.close();
-            } catch (SMTPException &e) {
-                session.close();
-            }
-        } catch (NetException &e) {
-
-        }
+    signin.setModal(true);
+    signin.setVars(host);
+    signin.exec();
 }
 
-void MainWindow::on_input_button2_clicked()
+
+
+/*void MainWindow::on_password_lineEdit_textChanged(const QString &arg1)
 {
-    emailDir = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                     "/home",
-                                                     tr("All Files (**)"));
-    if (!emailDir.isNull()) {
-         ui->emailDir_lineEdit->setText(emailDir);
+    ui->password_lineEdit->setEchoMode(QLineEdit::Password);
+}*/
+
+void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
+{
+    if (ui->comboBox->currentIndex() == 0) {
+        host = "smtp.gmail.com";
+    } else if(ui->comboBox->currentIndex() == 1) {
+        host = "smtp.mail.yahoo.com";
+    } else if(ui->comboBox->currentIndex() == 2) {
+        host = "smtp.live.com";
+    } else if(ui->comboBox->currentIndex() == 3) {
+        host = "smtp.mail.com";
+    } else if(ui->comboBox->currentIndex() == 4) {
+        host = "smtp.yandex.com";
+    } else if(ui->comboBox->currentIndex() == 5) {
+        host = "smtp.hushmail.com";
+    } else if(ui->comboBox->currentIndex() == 6) {
+        host = "smtp.aim.com";
+    } else if(ui->comboBox->currentIndex() == 7) {
+        host = "smtp.shortmail.com";
+    } else if(ui->comboBox->currentIndex() == 8) {
+        host = "smtp.mail.me.com";
+    }
+    else {
+        //I like ponies
     }
 }

@@ -16,16 +16,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
         enigma_ecies.cpp \
     dialog.cpp \
-    dialogd.cpp
+    signindialog.cpp \
+    email.cpp
 
 HEADERS  += mainwindow.h \
         enigma_ecies.hpp \
         icryptosystem.hpp \
     dialog.h \
-    dialogd.h
+    signindialog.h \
+    email.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
-    dialogd.ui
+    signindialog.ui \
+    email.ui
 
-LIBS += -lcrypto++ -lPocoFoundation -lPocoNet -lPocoNetSSL
+LIBS += -lcrypto++ -lPocoNet -lPocoFoundation -lPocoNetSSL

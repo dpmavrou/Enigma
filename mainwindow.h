@@ -5,7 +5,10 @@
 #include <enigma_ecies.hpp>
 #include <icryptosystem.hpp>
 #include <dialog.h>
-#include <dialogd.h>
+#include <signindialog.h>
+#include "fstream";
+
+using namespace std;
 
 namespace Ui {
 class MainWindow;
@@ -19,15 +22,16 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    QString keyfile;
-    QString fileName;
-    QString dirIn;
-    QString dirOut;
-    QString userName;
-    QString emailDir;
-    Dialog estatus;
-    Dialogd dstatus;
-    ICryptosystem * key;
+    QString keyfile; //keyfile
+    QString fileName; //
+    QString dirIn; //directory for encryption/decryption input file
+    QString dirOut; //directory for encryption/decryption output file
+    QString userName; //
+    QString emailDir; //directory for file to be emailed
+    Dialog status; //status window
+    ICryptosystem * key; //virtual cryptosystem
+    signinDialog signin;
+    string host = "smtp.gmail.com"; //hostname string for outgoing mail server
     bool encrypt;
 
 private slots:
@@ -43,6 +47,9 @@ private slots:
 
     void on_input_button2_clicked();
 
+    //void on_password_lineEdit_textChanged(const QString &arg1);
+
+    void on_comboBox_currentIndexChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;

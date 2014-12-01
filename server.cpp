@@ -1,8 +1,8 @@
 #include "opcodes.hpp"
-#include "enigmaserver.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -12,6 +12,7 @@
 #include <iostream>
 #include <ctime>
 #include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ int handlePut (int sock)
    // errcode = putToDatabase(name, key);
    
    // completed successfully; no other data expected back
-   write(sock,errcode,sizeof(errors));
+   write(sock,&errcode,sizeof(errors));
    
    delete name;
    delete key;
@@ -64,11 +65,12 @@ int handleGet (int sock)
    string key/* = getFromDatabase(name,&errcode)*/;
    
    // send error code
-   write(sock,errcode,sizeof(errors));
+   write(sock,&errcode,sizeof(errors));
    // if successful, send data to client
    if ( errcode == errors::noError )
    {
-      write(sock, htonl((int) key.size()), sizeof(int));
+      int keysize = htonl(key.size());
+      write(sock, &keysize, sizeof(int));
       write(sock, key.data(), key.size());
    }
    
@@ -77,17 +79,17 @@ int handleGet (int sock)
 
 int main (int argc, const char * argv[])
 {
-   int listener, conn, length;
+   int listener, conn;
    struct sockaddr_in s1, s2;
    
    listener = socket(AF_INET,SOCK_STREAM,0);
    
-   bzero((char *) &s1, sizeof(s1));
+   memset((char *) &s1, 0, sizeof(s1));
    s1.sin_family = (short) AF_INET;
    s1.sin_addr.s_addr = htonl(INADDR_ANY);
    s1.sin_port = htons(23232);
    
-   length = sizeof(s1);
+   socklen_t length = sizeof(s1);
    bind(listener, (struct sockaddr *) &s1, length);
    getsockname(listener, (struct sockaddr *) &s1, &length);
    listen(listener, 1);
@@ -99,6 +101,7 @@ int main (int argc, const char * argv[])
    {
       opcodes operation;
       pid_t child;
+      errors errcode;
       
       conn = accept(listener,(struct sockaddr *) &s2, &length);
       child = fork();
@@ -107,7 +110,8 @@ int main (int argc, const char * argv[])
          // check error
          if ( child < 0 )
          {
-            write(conn,errors::serverError,sizeof(errors));
+            errcode = errors::serverError;
+            write(conn,&errcode,sizeof(errors));
             logError("Could not fork child process.");
          }
          // close the connection in main thread
@@ -123,14 +127,15 @@ int main (int argc, const char * argv[])
       {
          switch (operation)
          {
-         case opcode::put:
+         case opcodes::put:
             handlePut(conn);
             break;
-         case opcode::get:
+         case opcodes::get:
             handleGet(conn); 
             break;
          default: // bad opcode
-            write(conn,errors::badOpcode,sizeof(errors));
+            errcode = errors::badOpcode;
+            write(conn,&errcode,sizeof(errors));
             logError("Bad operation code from client.");
             return 1;
          }
@@ -138,6 +143,7 @@ int main (int argc, const char * argv[])
       return 0;
    }
    // wait for children to finish
-   while (wait() > 0) {}
+   pid_t pid;
+   while (pid = waitpid(-1, NULL, 0)) { if (errno == ECHILD) { break; } }
    return 0;
 }

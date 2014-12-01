@@ -24,52 +24,52 @@ int logError (string msg)
         << "]: " << msg;
 }
 
-int handlePut (int socket)
+int handlePut (int sock)
 {
    // read name
    int nameSize;
-   read(socket, &nameSize, sizeof(int)); // get size of username in bytes
+   read(sock, &nameSize, sizeof(int)); // get size of username in bytes
    nameSize = ntohl(nameSize); // convert to host order
    char * name = new char[nameSize];
-   read(socket, name, nameSize); // read username into string
+   read(sock, name, nameSize); // read username into string
    
    int keySize;
-   read(socket, &keySize, sizeof(int));
+   read(sock, &keySize, sizeof(int));
    keySize = ntohl(keySize); // convert to host order
    char * key = new char[nameSize];
-   read(socket, key, keySize);
+   read(sock, key, keySize);
    
    errors errcode = errors::noError;
    // TODO: change this line to the appropriate put-to-database code
    // errcode = putToDatabase(name, key);
    
    // completed successfully; no other data expected back
-   write(socket,errcode,sizeof(errors));
+   write(sock,errcode,sizeof(errors));
    
    delete name;
    delete key;
 }
 
-int handleGet (int socket)
+int handleGet (int sock)
 {
    // read name
    int nameSize;
-   read(socket, &nameSize, sizeof(int)); // get size of username in bytes
+   read(sock, &nameSize, sizeof(int)); // get size of username in bytes
    nameSize = ntohl(nameSize); // convert to host order
    char * name = new char[nameSize];
-   read(socket, name, nameSize); // read username into string
+   read(sock, name, nameSize); // read username into string
    
    errors errcode = errors::noError;
    // TODO: change this line to the appropriate get-from-database code
    string key/* = getFromDatabase(name,&errcode)*/;
    
    // send error code
-   write(socket,errcode,sizeof(errors));
+   write(sock,errcode,sizeof(errors));
    // if successful, send data to client
    if ( errcode == errors::noError )
    {
-      write(socket, htonl((int) key.size()), sizeof(int));
-      write(socket, key.data(), key.size());
+      write(sock, htonl((int) key.size()), sizeof(int));
+      write(sock, key.data(), key.size());
    }
    
    delete name;
@@ -77,8 +77,7 @@ int handleGet (int socket)
 
 int main (int argc, const char * argv[])
 {
-   char buffer[64];
-   int listener, conn, length; char ch;
+   int listener, conn, length;
    struct sockaddr_in s1, s2;
    
    listener = socket(AF_INET,SOCK_STREAM,0);
@@ -86,7 +85,7 @@ int main (int argc, const char * argv[])
    bzero((char *) &s1, sizeof(s1));
    s1.sin_family = (short) AF_INET;
    s1.sin_addr.s_addr = htonl(INADDR_ANY);
-   s1.sin_port = htons(0);
+   s1.sin_port = htons(23232);
    
    length = sizeof(s1);
    bind(listener, (struct sockaddr *) &s1, length);
@@ -132,6 +131,7 @@ int main (int argc, const char * argv[])
             break;
          default: // bad opcode
             write(conn,errors::badOpcode,sizeof(errors));
+            logError("Bad operation code from client.");
             return 1;
          }
       }

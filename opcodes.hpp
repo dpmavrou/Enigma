@@ -3,8 +3,16 @@
 
 enum class opcodes : char
 {
-   get = 0x00,
-   put = 0x01,
+   get,
+   put
+};
+
+// ADD TO THIS
+enum class errors : char
+{
+   noError = 0x00,
+   badOpcode,
+   serverError = 0xff
 };
 
 #endif

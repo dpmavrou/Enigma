@@ -51,6 +51,14 @@ public:
     * \param filename File to load from.
     */
    virtual void load (const std::string & filename) = 0;
+   
+   /**
+    * \return The public key as a string.
+    */
+   virtual std::string public_key_to_string () = 0;
+   
+   /// Sets the public key value based on the string.
+   virtual void public_key_from_string (const std::string & other) = 0;
 };
 
 #endif

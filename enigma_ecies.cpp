@@ -33,6 +33,20 @@ void enigma_ecies_public::load (const std::string & filename)
    publicKey_.AccessPublicKey().Load(source);
 }
 
+std::string enigma_ecies_public::public_key_to_string
+{
+   std::string output;
+   StringSink sink (output);
+   publicKey_.GetPublicKey().Save(sink);
+   return output;
+}
+
+void enigma_ecies_public::public_key_from_string (const std::string & str)
+{
+   StringSource source(str, true);
+   publicKey_.AccessPublicKey().Load(source);
+}
+
 enigma_ecies_private::enigma_ecies_private () : 
    privateKey_(rng, ASN1::secp256r1())
 {

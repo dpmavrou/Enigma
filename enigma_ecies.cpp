@@ -77,5 +77,11 @@ void enigma_ecies_private::load (const std::string & filename)
 ICryptosystem * newECIESPrivateKey ()
 {
    enigma_ecies_private * output = new enigma_ecies_private();
-   return new enigma_ecies_private();
+   return output;
+}
+
+ICryptosystem * newECIESPublicKey ()
+{
+   enigma_ecies_public * output = new enigma_ecies_public();
+   return output;
 }

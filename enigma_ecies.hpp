@@ -82,5 +82,6 @@ private:
 
 /// Generates and returns a private key owned by the caller.
 ICryptosystem * newECIESPrivateKey ();
+ICryptosystem * newECIESPublicKey ();
 
 #endif

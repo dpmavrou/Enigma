@@ -31,7 +31,7 @@ public:
     Dialog status; //status window
     ICryptosystem * key; //virtual cryptosystem
     signinDialog signin;
-    string host = "smtp.gmail.com"; //hostname string for outgoing mail server
+    string host; //hostname string for outgoing mail server
     bool encrypt;
 
 private slots:
@@ -44,8 +44,6 @@ private slots:
     void on_decrypt_button_clicked();
 
     void on_email_button_clicked();
-
-    void on_input_button2_clicked();
 
     //void on_password_lineEdit_textChanged(const QString &arg1);
 

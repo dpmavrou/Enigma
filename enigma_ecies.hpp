@@ -35,7 +35,7 @@ public:
    virtual void load (const std::string & filename);
    
    virtual std::string public_key_to_string () const;
-   virtual void public_key_from_string (const std::string & str) const;
+   virtual void public_key_from_string (const std::string & str);
 protected:
    enigma_ecies_public (CryptoPP::ECIES<CryptoPP::ECP>::Decryptor key) : publicKey_(key) {}
    CryptoPP::ECIES<CryptoPP::ECP>::Encryptor publicKey_;

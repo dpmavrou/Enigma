@@ -55,10 +55,10 @@ public:
    /**
     * \return The public key as a string.
     */
-   virtual std::string public_key_to_string () = 0;
+   virtual std::string public_key_to_string () const = 0;
    
    /// Sets the public key value based on the string.
-   virtual void public_key_from_string (const std::string & other) = 0;
+   virtual void public_key_from_string (const std::string & str) = 0;
 };
 
 #endif

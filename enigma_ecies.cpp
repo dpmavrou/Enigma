@@ -33,7 +33,7 @@ void enigma_ecies_public::load (const std::string & filename)
    publicKey_.AccessPublicKey().Load(source);
 }
 
-std::string enigma_ecies_public::public_key_to_string
+std::string enigma_ecies_public::public_key_to_string () const
 {
    std::string output;
    StringSink sink (output);

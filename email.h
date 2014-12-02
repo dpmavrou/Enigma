@@ -25,6 +25,7 @@ public:
     std::string getBody();
 
     std::string getFile();
+
     ~email();
 
 private slots:

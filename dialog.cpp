@@ -48,3 +48,11 @@ void Dialog::smtpError() {
 void Dialog::netError() {
     ui->status_label->setText(tr("Network error"));
 }
+
+void Dialog::enError() {
+    ui->status_label->setText(tr("Error encrypting file"));
+}
+
+void Dialog::deError() {
+    ui->status_label->setText(tr("Error decrypting file"));
+}

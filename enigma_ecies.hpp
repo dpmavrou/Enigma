@@ -3,6 +3,7 @@
 
 #include "icryptosystem.hpp"
 #include <cryptopp/eccrypto.h>
+#include <exception>
 
 class enigma_ecies_public: public ICryptosystem
 {
@@ -14,26 +15,26 @@ public:
    /// Move constructor.
    enigma_ecies_public (enigma_ecies_public && other) : publicKey_(std::move(other.publicKey_)) {}
    /// Copy assignment.
-   const enigma_ecies_public & operator= (const enigma_ecies_public & other) { publicKey_ = other.publicKey_; }
+   const enigma_ecies_public & operator= (const enigma_ecies_public & other) { publicKey_ = other.publicKey_; return *this; }
    /// Move assignment.
-   const enigma_ecies_public & operator= (enigma_ecies_public && other) { publicKey_ = std::move(other.publicKey_); }
-   
+   const enigma_ecies_public & operator= (enigma_ecies_public && other) { publicKey_ = std::move(other.publicKey_); return *this; }
+
    /// Deletes this object.
    virtual void destroy () { delete this; }
-   
+
    /// Returns a copy of this object owned by the caller.
    virtual enigma_ecies_public * clone () const { return new enigma_ecies_public(*this); }
-   
+
    virtual void encrypt (const std::string & infile, const std::string & outfile) const;
-   
+
    virtual void decrypt (const std::string & infile, const std::string & outfile) const
    {
-      // throw an exception here
+      throw std::runtime_error("Cannot decrypt with public key.");
    }
-   
+
    virtual void save (const std::string & filename) const;
    virtual void load (const std::string & filename);
-   
+
    virtual std::string public_key_to_string () const;
    virtual void public_key_from_string (const std::string & str);
 protected:
@@ -64,17 +65,17 @@ public:
       privateKey_ = std::move(other.privateKey_);
       return *this;
    }
-   
+
    /// Deletes this object.
    virtual void destroy () { delete this; }
-   
+
    /// Returns a copy of this object owned by the caller.
    virtual enigma_ecies_private * clone () const { return new enigma_ecies_private(*this); }
-   
+
    virtual void decrypt (const std::string & infile, const std::string & outfile) const;
    virtual void save (const std::string & filename) const;
    virtual void load (const std::string & filename);
-   
+
    virtual bool has_private () const noexcept { return true; }
 private:
    CryptoPP::ECIES<CryptoPP::ECP>::Decryptor privateKey_;

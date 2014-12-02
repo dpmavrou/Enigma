@@ -22,6 +22,9 @@ signinDialog::signinDialog(QWidget *parent) :
     ui(new Ui::signinDialog)
 {
     ui->setupUi(this);
+    ui->username_lineEdit->setToolTip("User's full email address to be used as the sender");
+    ui->password_lineEdit->setToolTip("Password corresponding to the provided email");
+
 }
 
 signinDialog::~signinDialog()
@@ -55,17 +58,18 @@ void signinDialog::on_signin_button_clicked()
                 string body = messageInfo.getBody();
                 string theFile = messageInfo.getFile();
 
-                try {
-                       theMessage.addAttachment("the File", new FilePartSource(theFile));
-                } catch (Poco::FileNotFoundException){
-                    status.fnFound();
-                }
 
                 theMessage.setSender(user);
                 theMessage.addRecipient(MailRecipient(MailRecipient::PRIMARY_RECIPIENT, to));
                 theMessage.setSubject(subject);
                 theMessage.setContentType("text/plain; charset=UTF-8");
                 theMessage.setContent(body, MailMessage::ENCODING_8BIT);
+
+                try {
+                      theMessage.addAttachment("the File", new FilePartSource(theFile));
+                } catch (Poco::FileNotFoundException){
+                    status.fnFound();
+                }
 
                 theSession.sendMessage(theMessage);
                 status.success(2);

@@ -12,23 +12,31 @@ TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++0x
 
+INCLUDEPATH += /usr/include/mysql\
+               /usr/include/mysql++
+
 SOURCES += main.cpp\
         mainwindow.cpp \
         enigma_ecies.cpp \
     dialog.cpp \
     signindialog.cpp \
-    email.cpp
+    email.cpp \
+    userdialog.cpp \
+    sqlwrapper.cpp
 
 HEADERS  += mainwindow.h \
         enigma_ecies.hpp \
         icryptosystem.hpp \
     dialog.h \
     signindialog.h \
-    email.h
+    email.h \
+    userdialog.h \
+    sqlwrapper.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
     signindialog.ui \
-    email.ui
+    email.ui \
+    userdialog.ui
 
-LIBS += -lcrypto++ -lPocoNet -lPocoFoundation -lPocoNetSSL
+LIBS += -lcrypto++ -lPocoNet -lPocoFoundation -lPocoNetSSL -lmysqlpp -lmysqlclient

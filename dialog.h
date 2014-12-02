@@ -18,6 +18,8 @@ public:
     void fnFound();
     void smtpError();
     void netError();
+    void deError();
+    void enError();
 
 
 signals:

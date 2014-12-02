@@ -47,7 +47,7 @@ void enigma_ecies_public::public_key_from_string (const std::string & str)
    publicKey_.AccessPublicKey().Load(source);
 }
 
-enigma_ecies_private::enigma_ecies_private () : 
+enigma_ecies_private::enigma_ecies_private () :
    privateKey_(rng, ASN1::secp256r1())
 {
    publicKey_ = privateKey_;
@@ -55,6 +55,7 @@ enigma_ecies_private::enigma_ecies_private () :
 
 void enigma_ecies_private::decrypt (const std::string & infile, const std::string & outfile) const
 {
+   cout << "infile is " << infile << endl << "outfile is " << outfile << endl;
    FileSource(infile.c_str(), true,
       new PK_DecryptorFilter(rng, privateKey_,
          new FileSink(outfile.c_str())));
@@ -72,6 +73,7 @@ void enigma_ecies_private::load (const std::string & filename)
 {
    FileSource source (filename.c_str(),true);
    privateKey_.AccessPrivateKey().Load(source);
+   publicKey_ = privateKey_;
 }
 
 ICryptosystem * newECIESPrivateKey ()

@@ -12,12 +12,6 @@
 #include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/AutoPtr.h>
 #include <Poco/Net/FilePartSource.h>
-#include <cryptopp/files.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/asn.h>
-#include <cryptopp/oids.h>
-
-
 
 using namespace std;
 using namespace Poco;
@@ -29,9 +23,22 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    u.exec();
+    userFileName = u.getUserName();
+    keyfile = userFileName.toStdString() + ".ecies";
+    key = newECIESPrivateKey();
+    key->load(keyfile);
+
+    keyserver = sqlwrapper::sql_connect();
+    sqlwrapper::put(userFileName.toStdString(), key->public_key_to_string(),keyserver);
+
+    this->show();
     ui->setupUi(this);
     const QRect screen = QApplication::desktop()->screenGeometry();
     this->move(screen.center() - this->rect().center());
+
+    //set host
+    host = "smtp.gmail.com";
 
     //tooltips
     ui->encrypt_button->setToolTip("Encrypts selected file into output location");
@@ -42,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->input_button->setToolTip("Opens directory browser to select input file");
     ui->output_button->setToolTip("Opens directory browser to select output file");
     ui->email_button->setToolTip("Press to open sign-in interface for selected mail server");
+    ui->comboBox->setToolTip("The email service provider to be used");
 }
 
 MainWindow::~MainWindow()
@@ -85,16 +93,17 @@ void MainWindow::on_output_button_clicked()
 void MainWindow::on_encrypt_button_clicked()
 {
     userName = ui->recipient_lineEdit->text();
+    dirIn = ui->dirIn_lineEdit->text();
+    dirOut = ui->dirOut_lineEdit->text();
     try {
-        key = newECIESPrivateKey();
-        keyfile = "keyfile";
-        key->save(keyfile.toStdString());
-        key->encrypt(dirIn.toStdString(), dirOut.toStdString());
-        key->destroy();
+        ICryptosystem * tempKey = newECIESPublicKey();
+        tempKey->public_key_from_string(sqlwrapper::get(userName.toStdString(),keyserver));
+        tempKey->encrypt(dirIn.toStdString(), dirOut.toStdString());
+        tempKey->destroy();
         status.setModal(true);
         status.success(0);
     } catch(std::exception& e){
-        status.fnFound();
+        status.enError();
     }
     status.exec();
 }
@@ -104,17 +113,16 @@ void MainWindow::on_encrypt_button_clicked()
 */
 void MainWindow::on_decrypt_button_clicked()
 {
-    userName = ui->recipient_lineEdit->text();
+    dirIn = ui->dirIn_lineEdit->text();
+    dirOut = ui->dirOut_lineEdit->text();
     try {
-        key = newECIESPrivateKey();
-        key->load(keyfile.toStdString());
         key->decrypt(dirIn.toStdString(), dirOut.toStdString());
-        key->destroy();
         status.setModal(true);
         status.success(1);
     } catch (std::exception& e) {
-        status.fnFound();
-    } status.exec();
+        status.deError();
+    }
+    status.exec();
 }
 
 /*
